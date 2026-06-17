@@ -1,0 +1,22 @@
+# Virtual Environments
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment Variables / Secrets
+.env
+
+# Data Files
+*.csv
+processed_data/
+processed_data_amazon/
+
+# Ignore large binary documents (Optional: uncomment if you don't want them in GitHub)
+*.pdf
+*.docx
