@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+streamlit
+pandas
+numpy
+scikit-learn
+plotly
+shap
+lime
+sentence-transformers
+python-dotenv
+requests
+pydantic
