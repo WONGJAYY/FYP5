@@ -8,6 +8,9 @@ import pickle
 import os
 from dotenv import load_dotenv
 import requests
+import shap
+from lime.lime_text import LimeTextExplainer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # Load environment variables
 load_dotenv()
@@ -16,7 +19,7 @@ load_dotenv()
 class SHAPExplainer:
     """
     SHAP-based explainer for feature importance.
-    Uses kernel SHAP for model-agnostic explanations.
+    Uses Kernel/Linear SHAP for model-agnostic explanations.
     """
     
     def __init__(self, recommender):
@@ -34,8 +37,7 @@ class SHAPExplainer:
         """
         Explain why a product was recommended using feature importance.
         
-        This is a simplified SHAP-like explanation based on TF-IDF feature overlap.
-        For production, you would use actual SHAP values with a trained model.
+        Uses actual SHAP LinearExplainer to compute feature attributions.
         
         Args:
             source_id: ID of the source product
@@ -43,29 +45,59 @@ class SHAPExplainer:
             n_features: Number of top features to show
         
         Returns:
-            Dictionary with SHAP-style feature importance
+            Dictionary with SHAP feature importance
         """
-        explanation = self.recommender.get_similarity_explanation(source_id, target_id)
-        if not explanation:
+        source_idx = self.recommender.product_id_to_idx.get(source_id)
+        target_idx = self.recommender.product_id_to_idx.get(target_id)
+        
+        if source_idx is None or target_idx is None:
             return None
+            
+        source_vec = self.recommender.tfidf_matrix[source_idx]
+        target_vec = self.recommender.tfidf_matrix[target_idx]
         
-        # Convert to SHAP-style output
-        features = []
-        values = []
+        # Calculate coefficients for the linear cosine similarity surrogate model:
+        # sim(x) = (x . source_vec) / (||x|| * ||source_vec||)
+        # We approximate ||x|| as ||target_vec|| (locally constant)
+        target_norm = np.linalg.norm(target_vec.toarray())
+        source_norm = np.linalg.norm(source_vec.toarray())
+        denom = target_norm * source_norm if (target_norm * source_norm) > 0 else 1.0
         
-        for feat in explanation['common_features'][:n_features]:
-            features.append(feat['feature'])
-            values.append(feat['combined'])
+        coef = source_vec.toarray().flatten() / denom
         
-        # Normalize to sum to similarity score
-        total = sum(values) if values else 1
-        normalized_values = [v / total * explanation['similarity_score'] for v in values]
+        # Define background dataset (sample first 100 rows to keep it fast)
+        n_background = min(100, self.recommender.tfidf_matrix.shape[0])
+        background_data = self.recommender.tfidf_matrix[:n_background].toarray()
+        
+        # Instantiate SHAP LinearExplainer
+        explainer = shap.LinearExplainer((coef, 0.0), background_data)
+        
+        # Compute SHAP values for the target vector
+        shap_values_obj = explainer(target_vec.toarray())
+        shap_vals = shap_values_obj.values[0]
+        
+        # Extract features and their SHAP values
+        feature_importance = []
+        for i in range(len(shap_vals)):
+            if shap_vals[i] != 0:
+                feature_importance.append({
+                    'feature': self.recommender.feature_names[i],
+                    'value': float(shap_vals[i])
+                })
+        
+        # Sort descending by absolute attribution
+        feature_importance = sorted(feature_importance, key=lambda x: abs(x['value']), reverse=True)[:n_features]
+        
+        features = [x['feature'] for x in feature_importance]
+        values = [x['value'] for x in feature_importance]
+        
+        similarity_score = float(self.recommender.similarity_matrix[source_idx][target_idx])
         
         return {
             'feature_names': features,
-            'shap_values': normalized_values,
-            'base_value': 0.0,
-            'similarity_score': explanation['similarity_score'],
+            'shap_values': values,
+            'base_value': float(explainer.expected_value),
+            'similarity_score': similarity_score,
             'explanation_type': 'SHAP'
         }
     
@@ -102,8 +134,7 @@ class LIMEExplainer:
         """
         Explain a recommendation using LIME-style local explanations.
         
-        This provides a different perspective by showing which features
-        contribute positively or negatively to the recommendation.
+        Uses the actual LimeTextExplainer on target text against source TF-IDF vectors.
         
         Args:
             source_id: ID of the source product
@@ -122,45 +153,72 @@ class LIMEExplainer:
         if source_idx is None or target_idx is None:
             return None
         
-        # Get TF-IDF vectors
-        source_vec = self.recommender.tfidf_matrix[source_idx].toarray().flatten()
-        target_vec = self.recommender.tfidf_matrix[target_idx].toarray().flatten()
+        # Get target product's text content and source's vector
+        target_product = self.recommender.products.iloc[target_idx]
+        target_text = target_product.get('full_content', '')
+        source_vec = self.recommender.tfidf_matrix[source_idx]
         
-        # Calculate contribution of each feature
-        contributions = []
-        for i in range(len(source_vec)):
-            if source_vec[i] > 0 or target_vec[i] > 0:
-                # Positive contribution if both have the feature
-                # Negative if only one has it
-                if source_vec[i] > 0 and target_vec[i] > 0:
-                    contribution = source_vec[i] * target_vec[i]
-                    polarity = 'positive'
-                elif source_vec[i] > 0:
-                    contribution = -source_vec[i] * 0.1
-                    polarity = 'negative'
-                else:
-                    contribution = -target_vec[i] * 0.1
-                    polarity = 'negative'
+        if not target_text.strip():
+            return {
+                'positive_features': [],
+                'negative_features': [],
+                'all_contributions': [],
+                'explanation_type': 'LIME'
+            }
+        
+        def predict_fn(texts):
+            vecs = self.recommender.tfidf_vectorizer.transform(texts)
+            sims = cosine_similarity(vecs, source_vec).flatten()
+            sims = np.clip(sims, 0.0, 1.0)
+            return np.column_stack([1.0 - sims, sims])
+            
+        explainer = LimeTextExplainer(class_names=["dissimilar", "similar"])
+        
+        # Explain label 1 (similar) using 1000 perturbation samples for responsiveness
+        exp = explainer.explain_instance(
+            target_text,
+            predict_fn,
+            labels=(1,),
+            num_features=n_features,
+            num_samples=1000
+        )
+        
+        lime_results = exp.as_list(label=1)
+        
+        positive = []
+        negative = []
+        all_contributions = []
+        
+        for word, val in lime_results:
+            feature_idx = self.recommender.tfidf_vectorizer.vocabulary_.get(word)
+            source_w = 0.0
+            target_w = 0.0
+            if feature_idx is not None:
+                source_w = float(source_vec[0, feature_idx])
+                target_w = float(self.recommender.tfidf_matrix[target_idx, feature_idx])
                 
-                contributions.append({
-                    'feature': self.recommender.feature_names[i],
-                    'contribution': contribution,
-                    'polarity': polarity,
-                    'source_weight': float(source_vec[i]),
-                    'target_weight': float(target_vec[i])
-                })
-        
-        # Sort by absolute contribution
-        contributions = sorted(contributions, key=lambda x: abs(x['contribution']), reverse=True)
-        
-        # Get top positive and negative
-        positive = [c for c in contributions if c['polarity'] == 'positive'][:n_features // 2]
-        negative = [c for c in contributions if c['polarity'] == 'negative'][:n_features // 2]
+            contribution_info = {
+                'feature': str(word),
+                'contribution': float(val),
+                'polarity': 'positive' if val > 0 else 'negative',
+                'source_weight': source_w,
+                'target_weight': target_w
+            }
+            
+            all_contributions.append(contribution_info)
+            if val > 0:
+                positive.append(contribution_info)
+            else:
+                negative.append(contribution_info)
+                
+        positive = sorted(positive, key=lambda x: abs(x['contribution']), reverse=True)
+        negative = sorted(negative, key=lambda x: abs(x['contribution']), reverse=True)
+        all_contributions = sorted(all_contributions, key=lambda x: abs(x['contribution']), reverse=True)
         
         return {
             'positive_features': positive,
             'negative_features': negative,
-            'all_contributions': contributions[:n_features],
+            'all_contributions': all_contributions[:n_features],
             'explanation_type': 'LIME'
         }
 

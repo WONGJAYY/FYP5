@@ -557,6 +557,34 @@ def render_recommender_page(recommender, explainers):
                     st.info("👍 Good recommendation quality")
                 else:
                     st.warning("⚠️ Lower similarity - products may be less related")
+                
+                # Detailed Cosine Similarity Table
+                st.markdown("---")
+                st.markdown("### 📋 Detailed Cosine Similarity Scores")
+                detailed_data = []
+                for r in recommendations:
+                    detailed_data.append({
+                        'Rank': f"#{r['rank']}",
+                        'Product ID': r['product']['id'],
+                        'Product Name': r['product']['name'],
+                        'Brand': r['product'].get('brand', 'Unknown'),
+                        'Cosine Similarity': r['similarity_score']
+                    })
+                df_details = pd.DataFrame(detailed_data)
+                st.dataframe(
+                    df_details,
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        'Cosine Similarity': st.column_config.ProgressColumn(
+                            "Cosine Similarity",
+                            help="Cosine similarity score based on TF-IDF features",
+                            format="%.4f",
+                            min_value=0.0,
+                            max_value=1.0,
+                        )
+                    }
+                )
         else:
             st.warning("No recommendations found for this product.")
 
