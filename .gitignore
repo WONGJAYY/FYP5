@@ -20,3 +20,9 @@ processed_data_amazon/
 # Ignore large binary documents (Optional: uncomment if you don't want them in GitHub)
 *.pdf
 *.docx
+
+# Helper Scripts
+read_docx.py
+
+# Output Files
+output.txt
