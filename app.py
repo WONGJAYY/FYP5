@@ -27,27 +27,27 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for modern dark theme
+# Custom CSS for modern bright theme
 st.markdown("""
 <style>
     /* Main theme */
     .stApp {
-        background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
     }
     
     /* Sidebar styling */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%);
-        border-right: 1px solid rgba(255,255,255,0.1);
+        background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+        border-right: 1px solid rgba(0,0,0,0.08);
     }
     
     /* Metric cards */
     .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
         border-radius: 16px;
         padding: 24px;
         text-align: center;
-        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 10px 40px rgba(79, 70, 229, 0.25);
     }
     
     .metric-value {
@@ -59,18 +59,19 @@ st.markdown("""
     
     .metric-label {
         font-size: 0.9rem;
-        color: rgba(255,255,255,0.8);
+        color: rgba(255,255,255,0.9);
         text-transform: uppercase;
         letter-spacing: 1px;
     }
     
     /* Cards */
     .info-card {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.8);
+        border: 1px solid rgba(0,0,0,0.08);
         border-radius: 12px;
         padding: 20px;
         margin: 10px 0;
+        color: #1e293b;
     }
     
     /* Status indicators */
@@ -78,7 +79,7 @@ st.markdown("""
         display: inline-block;
         width: 10px;
         height: 10px;
-        background: #00ff88;
+        background: #10b981;
         border-radius: 50%;
         margin-right: 8px;
         animation: pulse 2s infinite;
@@ -91,17 +92,18 @@ st.markdown("""
     
     /* Product cards */
     .product-card {
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-        border: 1px solid rgba(255,255,255,0.1);
+        background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(241,245,249,0.9) 100%);
+        border: 1px solid rgba(0,0,0,0.08);
         border-radius: 12px;
         padding: 16px;
         margin: 8px 0;
         transition: transform 0.2s, box-shadow 0.2s;
+        color: #1e293b;
     }
     
     .product-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+        box-shadow: 0 8px 30px rgba(79, 70, 229, 0.15);
     }
     
     /* Chat styling */
@@ -113,14 +115,15 @@ st.markdown("""
     }
     
     .chat-user {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
         margin-left: auto;
         color: white;
     }
     
     .chat-assistant {
-        background: rgba(255,255,255,0.1);
-        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.9);
+        border: 1px solid rgba(0,0,0,0.1);
+        color: #1e293b;
     }
     
     /* Hide Streamlit branding */
@@ -129,7 +132,42 @@ st.markdown("""
     
     /* Custom headers */
     h1, h2, h3 {
-        color: white !important;
+        color: #1e293b !important;
+    }
+    
+    /* Override text colors for light theme */
+    .stMarkdown, .stText, p, span, label, .stRadio label, .stSelectbox label {
+        color: #1e293b !important;
+    }
+    
+    /* Selectbox / Dropdown styling */
+    [data-testid="stSelectbox"] > div > div {
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #1e293b;
+    }
+    
+    /* Input fields */
+    .stTextInput input {
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #1e293b;
+    }
+    
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        color: #1e293b !important;
+        background-color: rgba(255,255,255,0.7);
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        background-color: rgba(255,255,255,0.5);
+        border-radius: 8px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        color: #1e293b;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -374,12 +412,12 @@ def render_recommender_page(recommender, explainers):
                             domain={'x': [0, 1], 'y': [0, 1]},
                             gauge={
                                 'axis': {'range': [0, 100]},
-                                'bar': {'color': "#667eea"},
-                                'bgcolor': "rgba(255,255,255,0.1)",
+                                'bar': {'color': "#4F46E5"},
+                                'bgcolor': "rgba(241,245,249,0.8)",
                                 'steps': [
-                                    {'range': [0, 50], 'color': "rgba(255,255,255,0.05)"},
-                                    {'range': [50, 75], 'color': "rgba(102,126,234,0.2)"},
-                                    {'range': [75, 100], 'color': "rgba(102,126,234,0.4)"}
+                                    {'range': [0, 50], 'color': "rgba(226,232,240,0.6)"},
+                                    {'range': [50, 75], 'color': "rgba(79,70,229,0.15)"},
+                                    {'range': [75, 100], 'color': "rgba(79,70,229,0.3)"}
                                 ]
                             },
                             title={'text': "Match %"}
@@ -388,7 +426,7 @@ def render_recommender_page(recommender, explainers):
                             height=180,
                             margin=dict(t=30, b=0, l=0, r=0),
                             paper_bgcolor='rgba(0,0,0,0)',
-                            font={'color': 'white'}
+                            font={'color': '#1e293b'}
                         )
                         st.plotly_chart(fig, use_container_width=True, key=f"gauge_{i}")
                     
@@ -406,12 +444,12 @@ def render_recommender_page(recommender, explainers):
                                 orientation='h',
                                 title="Feature Importance (SHAP Values)",
                                 color=shap_exp['importance'][::-1],
-                                color_continuous_scale='Purples'
+                                color_continuous_scale='Blues'
                             )
                             fig.update_layout(
                                 paper_bgcolor='rgba(0,0,0,0)',
                                 plot_bgcolor='rgba(0,0,0,0)',
-                                font={'color': 'white'},
+                                font={'color': '#1e293b'},
                                 showlegend=False,
                                 height=300
                             )
@@ -470,11 +508,11 @@ def render_recommender_page(recommender, explainers):
                                 yaxis_title="Features",
                                 paper_bgcolor='rgba(0,0,0,0)',
                                 plot_bgcolor='rgba(0,0,0,0)',
-                                font={'color': 'white'},
+                                font={'color': '#1e293b'},
                                 height=300,
                                 showlegend=False
                             )
-                            fig.add_vline(x=0, line_dash="dash", line_color="white", opacity=0.5)
+                            fig.add_vline(x=0, line_dash="dash", line_color="#94a3b8", opacity=0.7)
                             st.plotly_chart(fig, use_container_width=True, key=f"lime_{i}")
                             
                             st.markdown("🟢 **Green** = Positive (similar features) | 🔴 **Red** = Negative (different features)")
@@ -517,7 +555,7 @@ def render_recommender_page(recommender, explainers):
                 fig.add_trace(go.Bar(
                     x=[f"Rec #{i+1}" for i in range(len(similarity_scores))],
                     y=[s * 100 for s in similarity_scores],
-                    marker_color=['#667eea' if s > 0.3 else '#ff6b6b' for s in similarity_scores],
+                    marker_color=['#4F46E5' if s > 0.3 else '#ef4444' for s in similarity_scores],
                     text=[f"{s:.1%}" for s in similarity_scores],
                     textposition='outside'
                 ))
@@ -527,7 +565,7 @@ def render_recommender_page(recommender, explainers):
                     yaxis_title="Similarity (%)",
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
-                    font={'color': 'white'},
+                    font={'color': '#1e293b'},
                     height=300,
                     yaxis=dict(range=[0, 100])
                 )
@@ -747,12 +785,12 @@ def render_analytics_page(recommender):
             y=rating_counts.values,
             title="Products by Rating",
             color=rating_counts.values,
-            color_continuous_scale='Purples'
+            color_continuous_scale='Blues'
         )
         fig.update_layout(
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            font={'color': 'white'},
+            font={'color': '#1e293b'},
             showlegend=False
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -766,12 +804,12 @@ def render_analytics_page(recommender):
             names=brand_counts.index,
             values=brand_counts.values,
             title="Top 10 Brands",
-            color_discrete_sequence=px.colors.sequential.Purples_r
+            color_discrete_sequence=px.colors.sequential.Blues_r
         )
         fig.update_layout(
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            font={'color': 'white'}
+            font={'color': '#1e293b'}
         )
         st.plotly_chart(fig, use_container_width=True)
     
@@ -791,13 +829,13 @@ def render_analytics_page(recommender):
             size='review_count',
             color='avg_rating',
             title="Reviews vs Rating",
-            color_continuous_scale='Purples',
+            color_continuous_scale='Blues',
             hover_data=['name']
         )
         fig.update_layout(
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            font={'color': 'white'}
+            font={'color': '#1e293b'}
         )
         st.plotly_chart(fig, use_container_width=True)
     
@@ -813,12 +851,12 @@ def render_analytics_page(recommender):
             orientation='h',
             title="Most Reviewed Products",
             color='avg_rating',
-            color_continuous_scale='Purples'
+            color_continuous_scale='Blues'
         )
         fig.update_layout(
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            font={'color': 'white'},
+            font={'color': '#1e293b'},
             yaxis={'categoryorder': 'total ascending'}
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -836,12 +874,12 @@ def render_analytics_page(recommender):
             x='price',
             nbins=30,
             title="Price Distribution",
-            color_discrete_sequence=['#667eea']
+            color_discrete_sequence=['#4F46E5']
         )
         fig.update_layout(
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            font={'color': 'white'}
+            font={'color': '#1e293b'}
         )
         st.plotly_chart(fig, use_container_width=True)
     else:
@@ -917,7 +955,7 @@ def render_evaluation_page(recommender, data_dir='processed_data'):
                 x=[1, 5], y=[1, 5],
                 mode='lines',
                 name='Perfect Prediction',
-                line=dict(color='rgba(255,255,255,0.3)', dash='dash')
+                line=dict(color='rgba(0,0,0,0.2)', dash='dash')
             ))
             
             # Actual predictions
@@ -929,7 +967,7 @@ def render_evaluation_page(recommender, data_dir='processed_data'):
                 marker=dict(
                     size=12,
                     color=predicted,
-                    colorscale='Purples',
+                    colorscale='Blues',
                     showscale=True,
                     colorbar=dict(title="Predicted")
                 )
@@ -940,9 +978,9 @@ def render_evaluation_page(recommender, data_dir='processed_data'):
                 yaxis_title="Predicted Rating",
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                font={'color': 'white'},
-                xaxis=dict(range=[0, 5.5], gridcolor='rgba(255,255,255,0.1)'),
-                yaxis=dict(range=[0, 5.5], gridcolor='rgba(255,255,255,0.1)')
+                font={'color': '#1e293b'},
+                xaxis=dict(range=[0, 5.5], gridcolor='rgba(0,0,0,0.08)'),
+                yaxis=dict(range=[0, 5.5], gridcolor='rgba(0,0,0,0.08)')
             )
             
             st.plotly_chart(fig, use_container_width=True)
@@ -957,13 +995,13 @@ def render_evaluation_page(recommender, data_dir='processed_data'):
                 nbins=20,
                 title="Prediction Error Distribution",
                 labels={'x': 'Error (Actual - Predicted)', 'y': 'Count'},
-                color_discrete_sequence=['#667eea']
+                color_discrete_sequence=['#4F46E5']
             )
             
             fig.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                font={'color': 'white'}
+                font={'color': '#1e293b'}
             )
             
             st.plotly_chart(fig, use_container_width=True)
