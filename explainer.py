@@ -121,7 +121,7 @@ class LIMEExplainer:
     
     def __init__(self, recommender):
         """
-        Initialize LIME explainer.
+        Initialize LIME explainer.a
         
         Args:
             recommender: ContentBasedRecommender instance
@@ -239,7 +239,8 @@ class LLMExplainer:
         self.recommender = recommender
         self.api_key = os.getenv('NVIDIA_API_KEY')
         self.api_url = "https://integrate.api.nvidia.com/v1/chat/completions"
-        self.model = "meta/llama-3.3-70b-instruct"
+        # self.model = "meta/llama-3.3-70b-instruct"
+        self.model = os.getenv('NVIDIA_MODEL_NAME', 'meta/llama-3.1-8b-instruct')
         
         if not recommender._loaded:
             recommender.load()
